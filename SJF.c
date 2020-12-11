@@ -174,7 +174,7 @@ void escalonador(NO **lista, int qnt_processador, int booleano){
 	for(int j=0;j<qnt_processador;j++){
     	inserir_No_Inicio((&lista[j]),taref[j].tempo,taref[j].nome);
 	}
-	//Já neste, segue o padrão de insersão crescente, ou seja, verifica que tarefa vai acabar primeiro...
+	//Já neste, segue o padrão de inserção crescente, ou seja, verifica que tarefa vai acabar primeiro...
 	int aux=999999,auxj;
     for(int i=qnt_processador;i<qnt_tarefa;i++){
     	for(int j=0;j<qnt_processador;j++){
