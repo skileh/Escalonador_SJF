@@ -278,7 +278,7 @@ void main(){
 
     free(lista);
     free(lista2);
-    flclose(f);
-    flclose(arq1);
-    flclose(arq2);
+    fclose(f);
+    fclose(arq1);
+    fclose(arq2);
 }
