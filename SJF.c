@@ -62,15 +62,18 @@ void inserir_No_Inicio (NO **p_Raiz, int p_temp, char p_nom[4]){
 //sempre o primeiro elemento que foi inserido
 //ou seja, a cada remoção, é necessário percorrer toda 
 //fila. A execução acaba quando o ultimo elemento é removido (a cabeça é removida).
-int remover_No_Fim( NO **p_Raiz, FILE *arq1, FILE *arq2){
+int remover_No_Fim( NO **p_Raiz, FILE *arq1, FILE *arq2,int flag){
 	int aux;
     int i = 0;
 
     if(*p_Raiz == NULL){}//printf("\nA lista ja esta vazia");
     else if((*p_Raiz)->p_prox == NULL){
         (*p_Raiz)->p_cabeca = 1;
-        fprintf(arq1,"\n%s;%d;%d\n\n",(*p_Raiz)->p_nome, (*p_Raiz)->p_tempoChegada,(*p_Raiz)->p_tempoSaida);
-        fprintf(arq2,"\n%s;%d;%d\n\n",(*p_Raiz)->p_nome, (*p_Raiz)->p_tempoChegada,(*p_Raiz)->p_tempoSaida);
+        if(flag==0){
+            fprintf(arq1,"\n%s;%d;%d\n\n",(*p_Raiz)->p_nome, (*p_Raiz)->p_tempoChegada,(*p_Raiz)->p_tempoSaida);}
+        else{
+            fprintf(arq2,"\n%s;%d;%d\n\n",(*p_Raiz)->p_nome, (*p_Raiz)->p_tempoChegada,(*p_Raiz)->p_tempoSaida);
+        }
         free((*p_Raiz));
     }
     else{
@@ -82,22 +85,16 @@ int remover_No_Fim( NO **p_Raiz, FILE *arq1, FILE *arq2){
             p_atual    = p_atual->p_prox;
         }
         p_anterior->p_prox = NULL;
-        fprintf(arq1,"\n%s;%d;%d",p_atual->p_nome, p_atual->p_tempoChegada,p_atual->p_tempoSaida);
-        fprintf(arq2,"\n%s;%d;%d",p_atual->p_nome, p_atual->p_tempoChegada,p_atual->p_tempoSaida);
+        if(flag==0)
+            fprintf(arq1,"\n%s;%d;%d",p_atual->p_nome, p_atual->p_tempoChegada,p_atual->p_tempoSaida);
+        else
+            fprintf(arq2,"\n%s;%d;%d",p_atual->p_nome, p_atual->p_tempoChegada,p_atual->p_tempoSaida);
         free(p_atual);
-        remover_No_Fim(*(&p_Raiz),arq1,arq2);
+        remover_No_Fim(*(&p_Raiz),arq1,arq2,flag);
     }
 }
 
-
-//função de checagem de lista, imprime todos elementos contidos em uma lista
-// como parametro é esperado uma lista..
-
-
-
-//Esta função organiza um vetor em ordem crescente ou decrescente;
-//Como parametro recebe o vetor, seu tamanho e o valor 0 caso seja crescente
-// e 1 caso decrescente.
+//Estas 2 funções organizam um vetor em ordem crescente ou decrescente;
 //Para ordenação de elementos é utilizado o algoritmo bubble sort.
 void SJF(Tarefa *lista, int tam){
 	int k, j;
@@ -136,14 +133,15 @@ void SJF_Oposto(Tarefa *lista, int tam){
 //por ultimo, os dados são desalocados da fila de cada processador e salvos em um TXT
 
 //como parametro, recebe fila de processador, quantidade de processadores, e um valor de checagem pra cada SJF
-void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq2){
+void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq2,char *nome_txt,int qnt_tarefa){
+
 	Tarefa *taref;
 	
 	//TAREFA é *taref DE ELEMENTOS 
 	//FAZER A LEITURA DO TXT AQUI e armazenar no vetor
     int i; 
 
-    f = fopen("tarefas.txt", "r");
+    f = fopen(nome_txt, "r");
     if (f == NULL){
         return;
     }
@@ -155,11 +153,11 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
     }    
  
 
-	int qnt_tarefa=9; // quantidade de tarefas
 	taref = (Tarefa*)malloc((qnt_tarefa)*sizeof(Tarefa));
 
     for (i=0; i < qnt_tarefa; i++){
         fscanf(f, "%s %d",taref[i].nome, &taref[i].tempo);
+        printf("[%s][%d]\n",taref[i].nome, taref[i].tempo);
     }
     
 	//AS TAREFAS SÃO ORGANIZADAS, ou melhor, ORDENADAS
@@ -186,21 +184,19 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
     	inserir_No_Inicio((&lista[auxj]),taref[i].tempo,taref[i].nome);
     	aux=999999;
     }
-    for(int i=0;i<2;i++){
+    for(int i=0;i<qnt_processador;i++){
     	fprintf(arq1,"Processador_%d",i+1);
-        remover_No_Fim(&lista[i],arq1,arq2);
-    	printf("\n");
+        remover_No_Fim(&lista[i],arq1,arq2,0);
     }
+
+    printf("MENOR_PRIMEIRO.TXT CRIADO");
 }
 
-void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq2){
+void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq2,char *nome_txt,int qnt_tarefa){
    Tarefa *taref;
-    
-    //TAREFA é *taref DE ELEMENTOS 
-    //FAZER A LEITURA DO TXT AQUI e armazenar no vetor
     int i; 
 
-    f = fopen("tarefas.txt", "r");
+    f = fopen(nome_txt, "r");
     if (f == NULL){
         return;
     }
@@ -209,7 +205,7 @@ void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq
         printf("ERRO!");
         exit(1);
     }    
-    int qnt_tarefa=9; // quantidade de tarefas
+
     taref = (Tarefa*)malloc((qnt_tarefa)*sizeof(Tarefa));
 
     for (i=0; i < qnt_tarefa; i++){
@@ -240,26 +236,41 @@ void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq
         inserir_No_Inicio((&lista[auxj]),taref[i].tempo,taref[i].nome);
         aux=999999;
     }
-    for(int i=0;i<2;i++){
+    for(int i=0;i<qnt_processador;i++){
         fprintf(arq2,"Processador_%d",i+1);
-        remover_No_Fim(&lista[i], arq1, arq2);
-        printf("\n");
+        remover_No_Fim(&lista[i], arq1, arq2,1);
     }
+
+    printf("\nMAIOR_PRIMEIRO.TXT CRIADO\n");
+    fclose(f);
+    fclose(arq2);
 }
 
-void main(){
-	NO **lista;
-	int qnt_processador;
+void main(int argc, char *argv[ ] ){
+    NO **lista;
+    int qnt_processador;
+    qnt_processador=atoi(argv[1]);
+    char nome_txt[30];
+    strcpy(nome_txt,argv[2]);
 
-	printf("Insira a quantidade de processadores: ");
-	scanf("%d", &qnt_processador);
-
-	
     FILE *f;
     FILE *arq1;
     FILE *arq2;
+    FILE *contador;
 
-    
+    contador = fopen(nome_txt, "r");
+    if (contador == NULL){
+        return;
+    }
+    char caracter;
+    int qnt_tarefa=0; // quantidade de tarefas
+    while (!feof(contador)) { //contador de tarefas do txt
+        caracter=getc(contador);
+        if (caracter=='\n') {
+            qnt_tarefa++;
+        }
+
+    }
     ///get(NOME DO ARQUIVO)
 	//O NOME DO ARQUIVO DEVE SER PASSADO COMO PARAMETRO PRA FUNCAO ESCALONADOR
 	//NELA O ARQUIVO SErÁ LIDO..
@@ -267,20 +278,18 @@ void main(){
 	//SJF
 	lista=(NO**)malloc((qnt_processador)*sizeof(NO));
     criar_Lista(*(&lista));
-    escalonador1(lista,qnt_processador,f,arq1,arq2);
+    escalonador1(lista,qnt_processador,f,arq1,arq2,nome_txt,qnt_tarefa);
 
     //SJF DECRESCENTE
     NO **lista2;
 	lista2=(NO**)malloc((qnt_processador)*sizeof(NO));
     criar_Lista(*(&lista2));
-    escalonador2(lista2,qnt_processador,f,arq1,arq2);
+    escalonador2(lista2,qnt_processador,f,arq1,arq2,nome_txt,qnt_tarefa);
 
 
     free(lista);
     free(lista2);
-    fclose(f);
-    fclose(arq1);
-    fclose(arq2);
-	
 
+    if(contador!=NULL)
+        fclose(contador);
 }
