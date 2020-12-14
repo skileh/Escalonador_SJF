@@ -157,7 +157,6 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
 
     for (i=0; i < qnt_tarefa; i++){
         fscanf(f, "%s %d",taref[i].nome, &taref[i].tempo);
-        printf("[%s][%d]\n",taref[i].nome, taref[i].tempo);
     }
     
 	//AS TAREFAS SÃO ORGANIZADAS, ou melhor, ORDENADAS
