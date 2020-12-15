@@ -94,7 +94,15 @@ int remover_No_Fim( NO **p_Raiz, FILE *arq1, FILE *arq2,int flag){
     }
 }
 
-//Estas 2 funções organizam um vetor em ordem crescente ou decrescente;
+
+//função de checagem de lista, imprime todos elementos contidos em uma lista
+// como parametro é esperado uma lista..
+
+
+
+//Esta função organiza um vetor em ordem crescente ou decrescente;
+//Como parametro recebe o vetor, seu tamanho e o valor 0 caso seja crescente
+// e 1 caso decrescente.
 //Para ordenação de elementos é utilizado o algoritmo bubble sort.
 void SJF(Tarefa *lista, int tam){
 	int k, j;
@@ -133,7 +141,7 @@ void SJF_Oposto(Tarefa *lista, int tam){
 //por ultimo, os dados são desalocados da fila de cada processador e salvos em um TXT
 
 //como parametro, recebe fila de processador, quantidade de processadores, e um valor de checagem pra cada SJF
-void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq2,char *nome_txt,int qnt_tarefa){
+void escalonador1(NO **lista, int qnt_processador, FILE *arq1,FILE *arq2,char *nome_txt,int qnt_tarefa){
 
 	Tarefa *taref;
 	
@@ -141,6 +149,7 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
 	//FAZER A LEITURA DO TXT AQUI e armazenar no vetor
     int i; 
 
+    FILE * f;
     f = fopen(nome_txt, "r");
     if (f == NULL){
         return;
@@ -156,9 +165,10 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
 	taref = (Tarefa*)malloc((qnt_tarefa)*sizeof(Tarefa));
 
     for (i=0; i < qnt_tarefa; i++){
-        fscanf(f, "%s %d",taref[i].nome, &taref[i].tempo);
+        fscanf(f, "%s %d",taref[i].nome, &taref[i].tempo); 
+       // printf(" "); // 
     }
-    
+    printf("\n");
 	//AS TAREFAS SÃO ORGANIZADAS, ou melhor, ORDENADAS
 	SJF(taref,qnt_tarefa);
 
@@ -167,9 +177,20 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
 	// vai acabar primeiro.
 	//são inseridas no processador de forma crescente, em ambos casos.
 	//Esse primeiro laço insere a PRIMEIRA tarefa em cada processador 
-	for(int j=0;j<qnt_processador;j++){
-    	inserir_No_Inicio((&lista[j]),taref[j].tempo,taref[j].nome);
-	}
+	 if(qnt_tarefa <qnt_processador){ //caso tenha menos tarefas que processador
+        qnt_processador=qnt_tarefa;  // então o programa deve ser terminado apos o escalonamento de todas tarefas
+    }
+    for(int j=0;j<qnt_processador;j++){
+        inserir_No_Inicio((&lista[j]),taref[j].tempo,taref[j].nome);
+    }
+    if(qnt_tarefa==qnt_processador){
+        for(int i=0;i<qnt_processador;i++){
+            fprintf(arq1,"Processador_%d",i+1);
+            remover_No_Fim(&lista[i],arq1,arq2,0);
+        }
+        printf("MENOR_PRIMEIRO.TXT CRIADO");
+        return;
+    }
 	//Já neste, segue o padrão de inserção crescente, ou seja, verifica que tarefa vai acabar primeiro...
 	int aux=999999,auxj;
     for(int i=qnt_processador;i<qnt_tarefa;i++){
@@ -189,12 +210,16 @@ void escalonador1(NO **lista, int qnt_processador, FILE *f, FILE *arq1,FILE *arq
     }
 
     printf("MENOR_PRIMEIRO.TXT CRIADO");
+    free(taref);
 }
 
-void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq2,char *nome_txt,int qnt_tarefa){
+void escalonador2(NO **lista, int qnt_processador, FILE *arq1, FILE *arq2,char *nome_txt,int qnt_tarefa){
    Tarefa *taref;
+    
+    //TAREFA é *taref DE ELEMENTOS 
+    //FAZER A LEITURA DO TXT AQUI e armazenar no vetor
     int i; 
-
+    FILE *f;
     f = fopen(nome_txt, "r");
     if (f == NULL){
         return;
@@ -219,9 +244,21 @@ void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq
     // vai acabar primeiro.
     //são inseridas no processador de forma crescente, em ambos casos.
     //Esse primeiro laço insere a PRIMEIRA tarefa em cada processador 
+    if(qnt_tarefa <qnt_processador){ //caso tenha menos tarefas que processador
+        qnt_processador=qnt_tarefa;  // então o programa deve ser terminado apos o escalonamento de todas tarefas
+    }
     for(int j=0;j<qnt_processador;j++){
         inserir_No_Inicio((&lista[j]),taref[j].tempo,taref[j].nome);
     }
+    if(qnt_tarefa==qnt_processador){
+        for(int i=0;i<qnt_processador;i++){
+            fprintf(arq2,"Processador_%d",i+1);
+            remover_No_Fim(&lista[i], arq1, arq2,1);
+        }
+        printf("\nMAIOR_PRIMEIRO.TXT CRIADO\n\n");
+        return;
+    }
+
     //Já neste, segue o padrão de inserção crescente, ou seja, verifica que tarefa vai acabar primeiro...
     int aux=999999,auxj;
     for(int i=qnt_processador;i<qnt_tarefa;i++){
@@ -237,6 +274,63 @@ void escalonador2(NO **lista, int qnt_processador, FILE *f,FILE *arq1, FILE *arq
     }
     for(int i=0;i<qnt_processador;i++){
         fprintf(arq2,"Processador_%d",i+1);
+        remover_No_Fim(&lista[i], arq1, arq2,1);
+    }
+
+    printf("\nMAIOR_PRIMEIRO.TXT CRIADO\n\n");
+    free(taref);
+    fclose(f);
+    fclose(arq2);
+}
+
+void main(int argc, char *argv[ ] ){
+    NO **lista;
+    int qnt_processador;
+    qnt_processador=atoi(argv[2]);
+    char nome_txt[30];
+    strcpy(nome_txt,argv[1]);
+
+    FILE *arq1;
+    FILE *arq2;
+    FILE *contador;
+
+    contador = fopen(nome_txt, "r");
+    if (contador == NULL){
+        return;
+    }
+    char caracter;
+    int qnt_tarefa=0; // quantidade de tarefas
+    while (!feof(contador)) { //contador de tarefas do txt
+        caracter=getc(contador);
+        if (caracter=='\n') {
+            qnt_tarefa++;
+        }
+
+    }
+    ///get(NOME DO ARQUIVO)
+	//O NOME DO ARQUIVO DEVE SER PASSADO COMO PARAMETRO PRA FUNCAO ESCALONADOR
+	//NELA O ARQUIVO SErÁ LIDO..
+
+	//SJF
+	lista=(NO**)malloc((qnt_processador)*sizeof(NO));
+    criar_Lista(*(&lista));
+    escalonador1(lista,qnt_processador,arq1,arq2,nome_txt,qnt_tarefa);
+
+    //SJF DECRESCENTE
+    NO **lista2;
+	lista2=(NO**)malloc((qnt_processador)*sizeof(NO));
+    criar_Lista(*(&lista2));
+    escalonador2(lista2,qnt_processador,arq1,arq2,nome_txt,qnt_tarefa);
+
+
+    free(lista);
+    free(lista2);
+
+    if(contador!=NULL)
+        fclose(contador);
+
+    printf("PROGRAMA EXECUTADO COM SUCESSO!\n");
+}
         remover_No_Fim(&lista[i], arq1, arq2,1);
     }
 
